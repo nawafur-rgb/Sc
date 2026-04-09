@@ -1,0 +1,1022 @@
+import { useState } from “react”;
+
+const C = {
+primary: “#1e4fa3”, primaryLight: “#2d65cc”, primaryDark: “#153882”,
+accent: “#f5a623”, accentDark: “#d4891a”,
+bg: “#f0f4fb”, bgDark: “#0d1626”,
+card: “#ffffff”, cardDark: “#172038”,
+text: “#0d1626”, textDark: “#e8eef8”,
+muted: “#5a6e99”, mutedDark: “#7a8eb8”,
+border: “#cdd8f0”, borderDark: “#253556”,
+success: “#22c55e”, warning: “#f59e0b”, danger: “#ef4444”, info: “#3b82f6”,
+};
+
+const STAGES = {
+middle: {
+label: “المرحلة المتوسطة”, labelEn: “Middle School”, icon: “📘”, color: “#2d65cc”,
+grades: [{ id: “m1”, label: “أول متوسط”, labelEn: “Grade 7” }, { id: “m2”, label: “ثاني متوسط”, labelEn: “Grade 8” }, { id: “m3”, label: “ثالث متوسط”, labelEn: “Grade 9” }],
+},
+high: {
+label: “المرحلة الثانوية”, labelEn: “High School”, icon: “🎓”, color: “#1e4fa3”,
+grades: [{ id: “h1”, label: “أول ثانوي”, labelEn: “Grade 10” }, { id: “h2”, label: “ثاني ثانوي”, labelEn: “Grade 11” }, { id: “h3”, label: “ثالث ثانوي”, labelEn: “Grade 12” }],
+},
+};
+
+const UNITS = {
+m1: [
+{ id: “u1”, title: “Unit 1: Introductions & Greetings”, icon: “👋”, skills: [“Reading”, “Vocabulary”, “Grammar”, “Speaking”] },
+{ id: “u2”, title: “Unit 2: Family & Home”, icon: “🏠”, skills: [“Reading”, “Vocabulary”, “Grammar”, “Writing”] },
+{ id: “u3”, title: “Unit 3: Daily Routines”, icon: “⏰”, skills: [“Listening”, “Grammar”, “Speaking”, “Writing”] },
+{ id: “u4”, title: “Unit 4: Food & Health”, icon: “🥗”, skills: [“Reading”, “Vocabulary”, “Grammar”, “Writing”] },
+],
+m2: [
+{ id: “u1”, title: “Unit 1: Places in Town”, icon: “🏙️”, skills: [“Reading”, “Vocabulary”, “Grammar”, “Speaking”] },
+{ id: “u2”, title: “Unit 2: Sports & Hobbies”, icon: “⚽”, skills: [“Listening”, “Vocabulary”, “Grammar”, “Writing”] },
+{ id: “u3”, title: “Unit 3: Past Events”, icon: “📅”, skills: [“Reading”, “Grammar”, “Speaking”, “Writing”] },
+{ id: “u4”, title: “Unit 4: Technology”, icon: “💻”, skills: [“Reading”, “Vocabulary”, “Grammar”, “Writing”] },
+],
+m3: [
+{ id: “u1”, title: “Unit 1: Environment”, icon: “🌍”, skills: [“Reading”, “Vocabulary”, “Grammar”, “Speaking”] },
+{ id: “u2”, title: “Unit 2: Future Plans”, icon: “🚀”, skills: [“Listening”, “Grammar”, “Speaking”, “Writing”] },
+{ id: “u3”, title: “Unit 3: Cultures & Traditions”, icon: “🎎”, skills: [“Reading”, “Vocabulary”, “Grammar”, “Writing”] },
+{ id: “u4”, title: “Unit 4: Media & Communication”, icon: “📡”, skills: [“Reading”, “Grammar”, “Speaking”, “Writing”] },
+],
+h1: [
+{ id: “u1”, title: “Unit 1: Identity & Society”, icon: “🌐”, skills: [“Reading”, “Vocabulary”, “Grammar”, “Writing”] },
+{ id: “u2”, title: “Unit 2: Science & Discovery”, icon: “🔬”, skills: [“Reading”, “Vocabulary”, “Grammar”, “Speaking”] },
+{ id: “u3”, title: “Unit 3: Literature & Poetry”, icon: “📜”, skills: [“Reading”, “Literary Analysis”, “Writing”, “Speaking”] },
+{ id: “u4”, title: “Unit 4: Global Issues”, icon: “♻️”, skills: [“Reading”, “Grammar”, “Writing”, “Speaking”] },
+],
+h2: [
+{ id: “u1”, title: “Unit 1: Business & Economy”, icon: “📈”, skills: [“Reading”, “Vocabulary”, “Grammar”, “Writing”] },
+{ id: “u2”, title: “Unit 2: Arts & Culture”, icon: “🎨”, skills: [“Reading”, “Vocabulary”, “Grammar”, “Speaking”] },
+{ id: “u3”, title: “Unit 3: Health & Medicine”, icon: “🏥”, skills: [“Reading”, “Grammar”, “Writing”, “Speaking”] },
+{ id: “u4”, title: “Unit 4: History & Civilization”, icon: “🏛️”, skills: [“Reading”, “Vocabulary”, “Grammar”, “Writing”] },
+],
+h3: [
+{ id: “u1”, title: “Unit 1: Academic Writing”, icon: “✍️”, skills: [“Essay Writing”, “Research”, “Grammar”, “Vocabulary”] },
+{ id: “u2”, title: “Unit 2: Critical Thinking”, icon: “🧠”, skills: [“Reading”, “Analysis”, “Discussion”, “Writing”] },
+{ id: “u3”, title: “Unit 3: Advanced Grammar”, icon: “📐”, skills: [“Grammar”, “Usage”, “Proofreading”, “Writing”] },
+{ id: “u4”, title: “Unit 4: Exam Preparation”, icon: “🎯”, skills: [“Reading”, “Writing”, “Listening”, “Speaking”] },
+],
+};
+
+const CONTENT_TYPES = [
+{ id: “lessons”, label: “الدروس”, labelEn: “Lessons”, icon: “📖”, color: C.primary },
+{ id: “pdfs”, label: “كتب PDF”, labelEn: “PDF Books”, icon: “📄”, color: C.danger },
+{ id: “exercises”, label: “تمارين”, labelEn: “Exercises”, icon: “✏️”, color: C.warning },
+{ id: “audio”, label: “صوتيات”, labelEn: “Audio”, icon: “🎧”, color: C.success },
+];
+
+const SKILLS_CONFIG = [
+{ id: “reading”, label: “القراءة”, en: “Reading”, icon: “📖”, color: “#3b82f6” },
+{ id: “writing”, label: “الكتابة”, en: “Writing”, icon: “✍️”, color: “#8b5cf6” },
+{ id: “listening”, label: “الاستماع”, en: “Listening”, icon: “🎧”, color: “#22c55e” },
+{ id: “speaking”, label: “المحادثة”, en: “Speaking”, icon: “🗣️”, color: “#f59e0b” },
+{ id: “grammar”, label: “القواعد”, en: “Grammar”, icon: “📐”, color: “#ec4899” },
+{ id: “vocabulary”, label: “المفردات”, en: “Vocabulary”, icon: “📝”, color: “#06b6d4” },
+];
+
+const SAMPLE_STUDENTS = [
+{ id: 1, name: “أحمد محمد الغامدي”, grade: “m1”, stage: “middle”, attendance: 92, reading: 85, writing: 78, listening: 90, speaking: 72, grammar: 88, vocabulary: 82, qrCode: “STU001” },
+{ id: 2, name: “سارة عبدالله العتيبي”, grade: “m1”, stage: “middle”, attendance: 97, reading: 94, writing: 92, listening: 96, speaking: 90, grammar: 95, vocabulary: 93, qrCode: “STU002” },
+{ id: 3, name: “محمد علي الشهري”, grade: “m2”, stage: “middle”, attendance: 75, reading: 62, writing: 58, listening: 70, speaking: 55, grammar: 65, vocabulary: 60, qrCode: “STU003” },
+{ id: 4, name: “نورة خالد الدوسري”, grade: “m2”, stage: “middle”, attendance: 96, reading: 91, writing: 89, listening: 93, speaking: 87, grammar: 90, vocabulary: 92, qrCode: “STU004” },
+{ id: 5, name: “عبدالرحمن يوسف القحطاني”, grade: “m3”, stage: “middle”, attendance: 83, reading: 77, writing: 74, listening: 80, speaking: 68, grammar: 75, vocabulary: 79, qrCode: “STU005” },
+{ id: 6, name: “ريم سعد الزهراني”, grade: “h1”, stage: “high”, attendance: 98, reading: 97, writing: 95, listening: 98, speaking: 94, grammar: 96, vocabulary: 97, qrCode: “STU006” },
+{ id: 7, name: “فيصل ناصر الحربي”, grade: “h1”, stage: “high”, attendance: 70, reading: 60, writing: 55, listening: 65, speaking: 50, grammar: 62, vocabulary: 58, qrCode: “STU007” },
+{ id: 8, name: “لمى إبراهيم العسيري”, grade: “h2”, stage: “high”, attendance: 94, reading: 88, writing: 86, listening: 90, speaking: 84, grammar: 87, vocabulary: 89, qrCode: “STU008” },
+];
+
+const SAMPLE_LESSONS = [
+{ id: 1, title: “Present Simple vs Present Continuous”, unit: “u3”, grade: “m1”, stage: “middle”, skill: “grammar”, type: “lessons”, date: “2026-04-05” },
+{ id: 2, title: “Reading: My Daily Routine”, unit: “u3”, grade: “m1”, stage: “middle”, skill: “reading”, type: “lessons”, date: “2026-04-04” },
+{ id: 3, title: “Vocabulary: Food & Nutrition”, unit: “u4”, grade: “m1”, stage: “middle”, skill: “vocabulary”, type: “exercises”, date: “2026-04-03” },
+{ id: 4, title: “Student’s Book Grade 7 — PDF”, unit: “u1”, grade: “m1”, stage: “middle”, skill: “reading”, type: “pdfs”, date: “2026-04-01” },
+{ id: 5, title: “Listening: Sports Conversation”, unit: “u2”, grade: “m2”, stage: “middle”, skill: “listening”, type: “audio”, date: “2026-04-06” },
+{ id: 6, title: “Past Simple Tense Worksheet”, unit: “u3”, grade: “m2”, stage: “middle”, skill: “grammar”, type: “exercises”, date: “2026-04-07” },
+{ id: 7, title: “Essay Writing: Opinion Paragraphs”, unit: “u1”, grade: “h1”, stage: “high”, skill: “writing”, type: “lessons”, date: “2026-04-06” },
+{ id: 8, title: “Advanced Grammar Workbook — PDF”, unit: “u3”, grade: “h3”, stage: “high”, skill: “grammar”, type: “pdfs”, date: “2026-04-02” },
+];
+
+const ATTENDANCE_LOG = [
+{ date: “2026-04-07”, present: 7, absent: 1, rate: 87.5 },
+{ date: “2026-04-06”, present: 8, absent: 0, rate: 100 },
+{ date: “2026-04-03”, present: 6, absent: 2, rate: 75 },
+{ date: “2026-04-02”, present: 7, absent: 1, rate: 87.5 },
+{ date: “2026-04-01”, present: 8, absent: 0, rate: 100 },
+];
+
+function avgScore(st) {
+return Math.round((st.reading + st.writing + st.listening + st.speaking + st.grammar + st.vocabulary) / 6);
+}
+function gradeLabel(id) {
+for (const s of Object.values(STAGES)) {
+const g = s.grades.find(g => g.id === id);
+if (g) return g.label;
+}
+return id;
+}
+
+function CircleProgress({ value, size = 80, color = C.primary, dark }) {
+const r = 30, circ = 2 * Math.PI * r;
+return (
+<svg width={size} height={size} viewBox=“0 0 70 70” style={{ transform: “rotate(-90deg)” }}>
+<circle cx=“35” cy=“35” r={r} fill=“none” stroke={dark ? C.borderDark : “#dde8f8”} strokeWidth=“8” />
+<circle cx=“35” cy=“35” r={r} fill=“none” stroke={color} strokeWidth=“8”
+strokeDasharray={circ} strokeDashoffset={circ - (value / 100) * circ} strokeLinecap=“round”
+style={{ transition: “stroke-dashoffset 1s ease” }} />
+<text x=“35” y=“35” fill={dark ? C.textDark : C.text} fontSize=“13” fontWeight=“bold”
+textAnchor=“middle” dominantBaseline=“central” style={{ transform: “rotate(90deg) translate(0,-70px)” }}>
+{value}%
+</text>
+</svg>
+);
+}
+
+function QRBlock({ code, size = 90 }) {
+let seed = 0;
+for (let i = 0; i < code.length; i++) seed += code.charCodeAt(i);
+const grid = 9, cellSize = size / grid, cells = [];
+for (let row = 0; row < grid; row++)
+for (let col = 0; col < grid; col++) {
+const corner = (row < 2 && col < 2) || (row < 2 && col > grid - 3) || (row > grid - 3 && col < 2);
+cells.push({ row, col, fill: corner || ((seed * (row + 1) * (col + 1)) % 3 === 0) });
+}
+return (
+<svg width={size} height={size} style={{ borderRadius: 6, background: “#fff”, display: “block” }}>
+{cells.map((c, i) => <rect key={i} x={c.col * cellSize} y={c.row * cellSize} width={cellSize - 0.5} height={cellSize - 0.5} fill={c.fill ? “#1e4fa3” : “#fff”} />)}
+</svg>
+);
+}
+
+function Badge({ label, color }) {
+return <span style={{ background: color + “1e”, color, border: `1px solid ${color}44`, padding: “2px 10px”, borderRadius: 20, fontSize: 11, fontWeight: 700 }}>{label}</span>;
+}
+function Chip({ label, color }) {
+return <span style={{ background: color + “18”, color, border: `1px solid ${color}33`, padding: “4px 12px”, borderRadius: 8, fontSize: 12, fontWeight: 600 }}>{label}</span>;
+}
+function Card({ children, dark, style = {} }) {
+return <div style={{ background: dark ? C.cardDark : “#fff”, border: `1px solid ${dark ? C.borderDark : C.border}`, borderRadius: 16, padding: 20, …style }}>{children}</div>;
+}
+function StatCard({ icon, label, value, color, dark, sub }) {
+return (
+<div style={{ background: dark ? C.cardDark : “#fff”, border: `1px solid ${dark ? C.borderDark : C.border}`, borderRadius: 16, padding: “18px 22px”, display: “flex”, alignItems: “center”, gap: 14, flex: 1, minWidth: 150 }}>
+<div style={{ fontSize: 30 }}>{icon}</div>
+<div>
+<div style={{ fontSize: 24, fontWeight: 800, color: color || C.primary }}>{value}</div>
+<div style={{ fontSize: 12, color: dark ? C.mutedDark : C.muted }}>{label}</div>
+{sub && <div style={{ fontSize: 11, color: dark ? “#5a6e99” : “#8a9abb” }}>{sub}</div>}
+</div>
+</div>
+);
+}
+function TabBar({ tabs, active, onChange }) {
+return (
+<div style={{ display: “flex”, gap: 6, flexWrap: “wrap”, marginBottom: 18 }}>
+{tabs.map(t => (
+<button key={t.id} onClick={() => onChange(t.id)} style={{ padding: “8px 18px”, borderRadius: 10, border: “none”, cursor: “pointer”, fontFamily: “inherit”, fontWeight: 600, fontSize: 13, background: active === t.id ? C.primary : “#e8eef8”, color: active === t.id ? “#fff” : C.text }}>
+{t.icon && `${t.icon} `}{t.label}
+</button>
+))}
+</div>
+);
+}
+function BackBtn({ onClick }) {
+return <button onClick={onClick} style={{ background: “none”, border: “none”, cursor: “pointer”, color: C.primary, fontSize: 22, padding: “0 4px” }}>←</button>;
+}
+
+function NotificationBell({ dark }) {
+const [open, setOpen] = useState(false);
+const notifs = [
+{ msg: “درس جديد: Present Simple vs Continuous”, time: “منذ 10 دقائق”, icon: “📘” },
+{ msg: “اختبار جديد: Grammar Unit 3”, time: “منذ ساعة”, icon: “📝” },
+{ msg: “واجب Writing جديد للأسبوع”, time: “منذ يومين”, icon: “📌” },
+];
+return (
+<div style={{ position: “relative” }}>
+<button onClick={() => setOpen(!open)} style={{ background: “none”, border: “none”, cursor: “pointer”, fontSize: 22, position: “relative” }}>
+🔔
+<span style={{ position: “absolute”, top: -4, right: -4, background: C.danger, color: “#fff”, fontSize: 10, borderRadius: “50%”, width: 16, height: 16, display: “flex”, alignItems: “center”, justifyContent: “center”, fontWeight: 700 }}>3</span>
+</button>
+{open && (
+<div style={{ position: “absolute”, top: 42, left: -220, width: 290, background: dark ? C.cardDark : “#fff”, border: `1px solid ${dark ? C.borderDark : C.border}`, borderRadius: 12, boxShadow: “0 8px 32px #0003”, zIndex: 200 }}>
+<div style={{ padding: “12px 16px”, fontWeight: 700, fontSize: 14, borderBottom: `1px solid ${dark ? C.borderDark : C.border}` }}>الإشعارات</div>
+{notifs.map((n, i) => (
+<div key={i} style={{ padding: “10px 16px”, display: “flex”, gap: 10, borderBottom: i < 2 ? `1px solid ${dark ? C.borderDark : C.border}` : “none” }}>
+<span style={{ fontSize: 18 }}>{n.icon}</span>
+<div>
+<div style={{ fontSize: 12 }}>{n.msg}</div>
+<div style={{ fontSize: 10, color: dark ? C.mutedDark : C.muted, marginTop: 2 }}>{n.time}</div>
+</div>
+</div>
+))}
+</div>
+)}
+</div>
+);
+}
+
+function DashboardView({ dark }) {
+const avgAtt = Math.round(SAMPLE_STUDENTS.reduce((s, st) => s + st.attendance, 0) / SAMPLE_STUDENTS.length);
+const avgAll = Math.round(SAMPLE_STUDENTS.reduce((s, st) => s + avgScore(st), 0) / SAMPLE_STUDENTS.length);
+const top = […SAMPLE_STUDENTS].sort((a, b) => avgScore(b) - avgScore(a)).slice(0, 3);
+const low = […SAMPLE_STUDENTS].sort((a, b) => avgScore(a) - avgScore(b)).slice(0, 3);
+return (
+<div style={{ display: “flex”, flexDirection: “column”, gap: 20 }}>
+<div style={{ display: “flex”, flexWrap: “wrap”, gap: 14 }}>
+<StatCard icon="👨‍🎓" label="إجمالي الطلاب" value={SAMPLE_STUDENTS.length} color={C.primary} dark={dark} sub="في جميع المراحل" />
+<StatCard icon=“📊” label=“متوسط الدرجات” value={`${avgAll}%`} color={C.info} dark={dark} sub=“اللغة الإنجليزية” />
+<StatCard icon=“✅” label=“متوسط الحضور” value={`${avgAtt}%`} color={C.success} dark={dark} sub=“هذا الأسبوع” />
+<StatCard icon="📚" label="الدروس المنشورة" value={SAMPLE_LESSONS.length} color={C.accent} dark={dark} sub="هذا الأسبوع" />
+</div>
+
+```
+  <Card dark={dark}>
+    <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 18 }}>📊 متوسط المهارات اللغوية</div>
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 16, justifyContent: "space-around" }}>
+      {SKILLS_CONFIG.map(sk => {
+        const avg = Math.round(SAMPLE_STUDENTS.reduce((s, st) => s + (st[sk.id] || 0), 0) / SAMPLE_STUDENTS.length);
+        return (
+          <div key={sk.id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+            <CircleProgress value={avg} size={72} color={sk.color} dark={dark} />
+            <div style={{ fontSize: 12, fontWeight: 700, color: sk.color }}>{sk.icon} {sk.label}</div>
+            <div style={{ fontSize: 11, color: dark ? C.mutedDark : C.muted }}>{sk.en}</div>
+          </div>
+        );
+      })}
+    </div>
+  </Card>
+
+  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+    <Card dark={dark}>
+      <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 14 }}>🏆 المتفوقون</div>
+      {top.map((s, i) => (
+        <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: i < 2 ? `1px solid ${dark ? C.borderDark : C.border}` : "none" }}>
+          <div style={{ width: 26, height: 26, borderRadius: "50%", background: ["#f5a62322","#9ca3af22","#b4530922"][i], color: ["#f5a623","#6b7280","#b45309"][i], display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 13 }}>{i + 1}</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 600 }}>{s.name}</div>
+            <div style={{ fontSize: 11, color: dark ? C.mutedDark : C.muted }}>{gradeLabel(s.grade)}</div>
+          </div>
+          <Badge label={`${avgScore(s)}%`} color={C.success} />
+        </div>
+      ))}
+    </Card>
+    <Card dark={dark}>
+      <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 14 }}>⚠️ يحتاجون متابعة</div>
+      {low.map((s, i) => (
+        <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: i < 2 ? `1px solid ${dark ? C.borderDark : C.border}` : "none" }}>
+          <span style={{ fontSize: 18 }}>🔴</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 600 }}>{s.name}</div>
+            <div style={{ fontSize: 11, color: dark ? C.mutedDark : C.muted }}>{gradeLabel(s.grade)}</div>
+          </div>
+          <Badge label={`${avgScore(s)}%`} color={C.danger} />
+        </div>
+      ))}
+    </Card>
+  </div>
+
+  <Card dark={dark}>
+    <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 16 }}>📅 سجل الحضور الأسبوعي</div>
+    <div style={{ display: "flex", gap: 12, alignItems: "flex-end", height: 110 }}>
+      {ATTENDANCE_LOG.map((a, i) => (
+        <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: a.rate >= 90 ? C.success : a.rate >= 75 ? C.warning : C.danger }}>{a.rate}%</div>
+          <div style={{ width: "100%", background: a.rate >= 90 ? C.success : a.rate >= 75 ? C.warning : C.danger, height: `${a.rate * 0.8}%`, maxHeight: 80, borderRadius: "6px 6px 0 0", opacity: 0.85 }} />
+          <div style={{ fontSize: 10, color: dark ? C.mutedDark : C.muted }}>{a.date.slice(5)}</div>
+        </div>
+      ))}
+    </div>
+  </Card>
+
+  <Card dark={dark}>
+    <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 14 }}>⚡ آخر المحتوى المضاف</div>
+    {SAMPLE_LESSONS.slice(0, 5).map((l, i) => {
+      const sk = SKILLS_CONFIG.find(s => s.id === l.skill) || SKILLS_CONFIG[0];
+      const ct = CONTENT_TYPES.find(c => c.id === l.type) || CONTENT_TYPES[0];
+      return (
+        <div key={l.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 0", borderBottom: i < 4 ? `1px solid ${dark ? C.borderDark : C.border}` : "none" }}>
+          <span style={{ fontSize: 20 }}>{ct.icon}</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 600 }}>{l.title}</div>
+            <div style={{ fontSize: 11, color: dark ? C.mutedDark : C.muted }}>{gradeLabel(l.grade)} · {l.date}</div>
+          </div>
+          <Chip label={`${sk.icon} ${sk.en}`} color={sk.color} />
+        </div>
+      );
+    })}
+  </Card>
+</div>
+```
+
+);
+}
+
+function ContentView({ dark }) {
+const [stage, setStage] = useState(null);
+const [grade, setGrade] = useState(null);
+const [unit, setUnit] = useState(null);
+const [contentType, setContentType] = useState(“lessons”);
+const [showAdd, setShowAdd] = useState(false);
+const [addForm, setAddForm] = useState({ title: “”, skill: “grammar”, type: “lessons” });
+const [local, setLocal] = useState([]);
+
+if (!stage) return (
+<div>
+<div style={{ fontWeight: 700, fontSize: 17, marginBottom: 20 }}>🌐 محتوى اللغة الإنجليزية — اختر المرحلة</div>
+<div style={{ display: “grid”, gridTemplateColumns: “1fr 1fr”, gap: 18 }}>
+{Object.entries(STAGES).map(([key, s]) => (
+<div key={key} onClick={() => setStage(key)} style={{ background: dark ? C.cardDark : “#fff”, border: `2px solid ${dark ? C.borderDark : C.border}`, borderRadius: 20, padding: 36, cursor: “pointer”, textAlign: “center”, transition: “all .2s” }}
+onMouseEnter={e => e.currentTarget.style.borderColor = s.color}
+onMouseLeave={e => e.currentTarget.style.borderColor = dark ? C.borderDark : C.border}>
+<div style={{ fontSize: 52 }}>{s.icon}</div>
+<div style={{ fontSize: 18, fontWeight: 800, marginTop: 12, color: s.color }}>{s.label}</div>
+<div style={{ fontSize: 13, color: dark ? C.mutedDark : C.muted, marginTop: 4 }}>{s.labelEn}</div>
+<div style={{ fontSize: 12, color: dark ? C.mutedDark : C.muted, marginTop: 6 }}>{s.grades.map(g => g.label).join(” · “)}</div>
+</div>
+))}
+</div>
+</div>
+);
+
+const stageData = STAGES[stage];
+if (!grade) return (
+<div>
+<div style={{ display: “flex”, alignItems: “center”, gap: 10, marginBottom: 20 }}>
+<BackBtn onClick={() => setStage(null)} />
+<div style={{ fontWeight: 700, fontSize: 17 }}>{stageData.label} · اختر الصف</div>
+</div>
+<div style={{ display: “flex”, gap: 14, flexWrap: “wrap” }}>
+{stageData.grades.map(g => (
+<div key={g.id} onClick={() => setGrade(g)} style={{ flex: 1, minWidth: 160, background: dark ? C.cardDark : “#fff”, border: `2px solid ${dark ? C.borderDark : C.border}`, borderRadius: 16, padding: “24px 28px”, cursor: “pointer”, textAlign: “center”, fontWeight: 700, fontSize: 16, transition: “all .2s” }}
+onMouseEnter={e => e.currentTarget.style.borderColor = stageData.color}
+onMouseLeave={e => e.currentTarget.style.borderColor = dark ? C.borderDark : C.border}>
+🎒 {g.label}
+<div style={{ fontSize: 12, fontWeight: 500, color: dark ? C.mutedDark : C.muted, marginTop: 4 }}>{g.labelEn}</div>
+</div>
+))}
+</div>
+</div>
+);
+
+const units = UNITS[grade.id] || [];
+if (!unit) return (
+<div>
+<div style={{ display: “flex”, alignItems: “center”, gap: 10, marginBottom: 20 }}>
+<BackBtn onClick={() => setGrade(null)} />
+<div style={{ fontWeight: 700, fontSize: 17 }}>{grade.label} · الوحدات الدراسية</div>
+</div>
+<div style={{ display: “grid”, gridTemplateColumns: “1fr 1fr”, gap: 14 }}>
+{units.map(u => (
+<div key={u.id} onClick={() => setUnit(u)} style={{ background: dark ? C.cardDark : “#fff”, border: `2px solid ${dark ? C.borderDark : C.border}`, borderRadius: 16, padding: “20px 22px”, cursor: “pointer”, transition: “all .2s” }}
+onMouseEnter={e => e.currentTarget.style.borderColor = C.primary}
+onMouseLeave={e => e.currentTarget.style.borderColor = dark ? C.borderDark : C.border}>
+<div style={{ fontSize: 32, marginBottom: 10 }}>{u.icon}</div>
+<div style={{ fontWeight: 700, fontSize: 14, marginBottom: 8 }}>{u.title}</div>
+<div style={{ display: “flex”, flexWrap: “wrap”, gap: 6 }}>
+{u.skills.map(sk => <Chip key={sk} label={sk} color={C.primary} />)}
+</div>
+</div>
+))}
+</div>
+</div>
+);
+
+const items = […SAMPLE_LESSONS, …local].filter(l => l.grade === grade.id && l.stage === stage && l.unit === unit.id && l.type === contentType);
+
+return (
+<div>
+<div style={{ display: “flex”, alignItems: “center”, gap: 10, marginBottom: 6, flexWrap: “wrap” }}>
+<BackBtn onClick={() => setUnit(null)} />
+<div style={{ fontWeight: 700, fontSize: 16 }}>{grade.label} · {unit.title}</div>
+<div style={{ flex: 1 }} />
+<button onClick={() => setShowAdd(true)} style={{ background: C.primary, color: “#fff”, border: “none”, borderRadius: 10, padding: “9px 20px”, fontFamily: “inherit”, cursor: “pointer”, fontWeight: 700, fontSize: 13 }}>+ إضافة</button>
+</div>
+<div style={{ display: “flex”, gap: 8, marginBottom: 14, flexWrap: “wrap” }}>
+{CONTENT_TYPES.map(c => (
+<button key={c.id} onClick={() => setContentType(c.id)} style={{ padding: “7px 16px”, borderRadius: 10, border: “none”, cursor: “pointer”, fontFamily: “inherit”, fontWeight: 600, fontSize: 13, background: contentType === c.id ? C.primary : (dark ? C.cardDark : “#e8eef8”), color: contentType === c.id ? “#fff” : (dark ? C.textDark : C.text) }}>
+{c.icon} {c.label}
+</button>
+))}
+</div>
+<div style={{ display: “flex”, gap: 6, marginBottom: 16, flexWrap: “wrap” }}>
+{unit.skills.map(sk => { const s = SKILLS_CONFIG.find(s => s.en === sk || s.label === sk); return s ? <Chip key={sk} label={`${s.icon} ${s.en}`} color={s.color} /> : null; })}
+</div>
+<div style={{ display: “flex”, flexDirection: “column”, gap: 10 }}>
+{items.length === 0 ? (
+<div style={{ textAlign: “center”, padding: 48, color: dark ? C.mutedDark : C.muted }}>
+<div style={{ fontSize: 48 }}>📂</div>
+<div style={{ marginTop: 12, fontSize: 14 }}>لا يوجد محتوى. اضغط “+ إضافة” للبدء.</div>
+</div>
+) : items.map(item => {
+const sk = SKILLS_CONFIG.find(s => s.id === item.skill) || SKILLS_CONFIG[0];
+const ct = CONTENT_TYPES.find(c => c.id === item.type) || CONTENT_TYPES[0];
+return (
+<div key={item.id} style={{ background: dark ? C.cardDark : “#fff”, border: `1px solid ${dark ? C.borderDark : C.border}`, borderRadius: 14, padding: “14px 20px”, display: “flex”, alignItems: “center”, gap: 14 }}>
+<span style={{ fontSize: 26 }}>{ct.icon}</span>
+<div style={{ flex: 1 }}>
+<div style={{ fontWeight: 700, fontSize: 14 }}>{item.title}</div>
+<div style={{ fontSize: 11, color: dark ? C.mutedDark : C.muted, marginTop: 2 }}>{item.date}</div>
+</div>
+<Chip label={`${sk.icon} ${sk.en}`} color={sk.color} />
+<button style={{ background: C.primary + “18”, color: C.primary, border: “none”, borderRadius: 8, padding: “6px 14px”, cursor: “pointer”, fontFamily: “inherit”, fontSize: 12, fontWeight: 600 }}>عرض</button>
+</div>
+);
+})}
+</div>
+
+```
+  {showAdd && (
+    <div style={{ position: "fixed", inset: 0, background: "#0009", zIndex: 500, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ background: dark ? C.cardDark : "#fff", borderRadius: 20, padding: 32, width: 400, maxWidth: "94vw" }}>
+        <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 20 }}>إضافة محتوى إنجليزي</div>
+        <div style={{ marginBottom: 14 }}>
+          <label style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: 6 }}>العنوان (بالإنجليزية)</label>
+          <input value={addForm.title} onChange={e => setAddForm({ ...addForm, title: e.target.value })} placeholder="e.g. Grammar: Past Simple Exercises"
+            style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: `1px solid ${dark ? C.borderDark : C.border}`, background: dark ? C.bgDark : "#f5f8ff", color: dark ? C.textDark : C.text, fontFamily: "inherit", fontSize: 14, boxSizing: "border-box" }} />
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: 6 }}>المهارة</label>
+            <select value={addForm.skill} onChange={e => setAddForm({ ...addForm, skill: e.target.value })} style={{ width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${dark ? C.borderDark : C.border}`, background: dark ? C.bgDark : "#f5f8ff", color: dark ? C.textDark : C.text, fontFamily: "inherit" }}>
+              {SKILLS_CONFIG.map(s => <option key={s.id} value={s.id}>{s.icon} {s.en}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: 6 }}>النوع</label>
+            <select value={addForm.type} onChange={e => setAddForm({ ...addForm, type: e.target.value })} style={{ width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${dark ? C.borderDark : C.border}`, background: dark ? C.bgDark : "#f5f8ff", color: dark ? C.textDark : C.text, fontFamily: "inherit" }}>
+              {CONTENT_TYPES.map(c => <option key={c.id} value={c.id}>{c.icon} {c.label}</option>)}
+            </select>
+          </div>
+        </div>
+        <div style={{ marginBottom: 20, border: `2px dashed ${dark ? C.borderDark : C.border}`, borderRadius: 10, padding: 18, textAlign: "center", color: dark ? C.mutedDark : C.muted, fontSize: 13 }}>
+          📁 اضغط هنا لرفع الملف (PDF / MP3 / Word)
+        </div>
+        <div style={{ display: "flex", gap: 10 }}>
+          <button onClick={() => setShowAdd(false)} style={{ flex: 1, padding: 10, borderRadius: 10, border: `1px solid ${dark ? C.borderDark : C.border}`, background: "none", cursor: "pointer", fontFamily: "inherit", color: dark ? C.textDark : C.text, fontWeight: 600 }}>إلغاء</button>
+          <button onClick={() => { if (addForm.title.trim()) setLocal(p => [...p, { id: Date.now(), ...addForm, grade: grade.id, stage, unit: unit.id, date: new Date().toISOString().slice(0, 10) }]); setShowAdd(false); }} style={{ flex: 1, padding: 10, borderRadius: 10, border: "none", background: C.primary, color: "#fff", cursor: "pointer", fontFamily: "inherit", fontWeight: 700 }}>إضافة</button>
+        </div>
+      </div>
+    </div>
+  )}
+</div>
+```
+
+);
+}
+
+function StudentsView({ dark }) {
+const [search, setSearch] = useState(””);
+const [filterStage, setFilterStage] = useState(“all”);
+const [selected, setSelected] = useState(null);
+
+const filtered = SAMPLE_STUDENTS.filter(s =>
+(filterStage === “all” || s.stage === filterStage) &&
+(s.name.includes(search) || gradeLabel(s.grade).includes(search))
+);
+
+if (selected) {
+const s = selected, avg = avgScore(s);
+return (
+<div>
+<div style={{ display: “flex”, alignItems: “center”, gap: 10, marginBottom: 22 }}>
+<BackBtn onClick={() => setSelected(null)} />
+<div style={{ fontWeight: 800, fontSize: 17 }}>ملف الطالب: {s.name}</div>
+</div>
+<div style={{ display: “grid”, gridTemplateColumns: “1fr 1fr”, gap: 16, marginBottom: 20 }}>
+<Card dark={dark} style={{ textAlign: “center” }}>
+<CircleProgress value={avg} size={90} color={avg >= 85 ? C.success : avg >= 70 ? C.warning : C.danger} dark={dark} />
+<div style={{ marginTop: 10, fontWeight: 700 }}>متوسط الدرجات</div>
+<Badge label={avg >= 85 ? “متفوق ⭐” : avg >= 70 ? “جيد” : “يحتاج متابعة”} color={avg >= 85 ? C.success : avg >= 70 ? C.warning : C.danger} />
+</Card>
+<Card dark={dark} style={{ textAlign: “center” }}>
+<CircleProgress value={s.attendance} size={90} color={s.attendance >= 90 ? C.success : s.attendance >= 75 ? C.warning : C.danger} dark={dark} />
+<div style={{ marginTop: 10, fontWeight: 700 }}>نسبة الحضور</div>
+<div style={{ fontSize: 12, color: dark ? C.mutedDark : C.muted }}>{gradeLabel(s.grade)}</div>
+</Card>
+</div>
+<Card dark={dark} style={{ marginBottom: 20 }}>
+<div style={{ fontWeight: 700, fontSize: 14, marginBottom: 16 }}>📊 تفصيل المهارات اللغوية — English Skills Breakdown</div>
+{SKILLS_CONFIG.map(sk => {
+const val = s[sk.id] || 0;
+return (
+<div key={sk.id} style={{ display: “flex”, alignItems: “center”, gap: 12, marginBottom: 10 }}>
+<div style={{ width: 130, fontSize: 13, fontWeight: 600 }}>{sk.icon} {sk.en}</div>
+<div style={{ flex: 1, height: 10, background: dark ? C.borderDark : “#e0e8f4”, borderRadius: 5, overflow: “hidden” }}>
+<div style={{ height: “100%”, width: `${val}%`, background: sk.color, borderRadius: 5 }} />
+</div>
+<Badge label={`${val}%`} color={val >= 85 ? C.success : val >= 70 ? C.warning : C.danger} />
+</div>
+);
+})}
+</Card>
+<Card dark={dark}>
+<div style={{ fontWeight: 700, fontSize: 14, marginBottom: 14 }}>🔲 رمز QR الخاص بالطالب</div>
+<div style={{ display: “flex”, alignItems: “center”, gap: 20 }}>
+<QRBlock code={s.qrCode} size={110} />
+<div>
+<div style={{ fontWeight: 800, fontSize: 16 }}>{s.name}</div>
+<div style={{ fontSize: 13, color: dark ? C.mutedDark : C.muted, marginTop: 4 }}>{gradeLabel(s.grade)}</div>
+<div style={{ marginTop: 8 }}><Badge label={s.qrCode} color={C.primary} /></div>
+<div style={{ fontSize: 11, color: dark ? C.mutedDark : C.muted, marginTop: 10 }}>استخدم هذا الرمز لتسجيل الحضور</div>
+</div>
+</div>
+</Card>
+</div>
+);
+}
+
+return (
+<div>
+<div style={{ display: “flex”, gap: 12, marginBottom: 18, flexWrap: “wrap” }}>
+<input value={search} onChange={e => setSearch(e.target.value)} placeholder=“🔍 بحث عن طالب…”
+style={{ flex: 1, minWidth: 200, padding: “10px 16px”, borderRadius: 12, border: `1px solid ${dark ? C.borderDark : C.border}`, background: dark ? C.cardDark : “#fff”, color: dark ? C.textDark : C.text, fontFamily: “inherit”, fontSize: 13 }} />
+{[“all”, “middle”, “high”].map(s => (
+<button key={s} onClick={() => setFilterStage(s)} style={{ padding: “10px 18px”, borderRadius: 12, border: “none”, cursor: “pointer”, fontFamily: “inherit”, fontWeight: 600, fontSize: 13, background: filterStage === s ? C.primary : (dark ? C.cardDark : “#e8eef8”), color: filterStage === s ? “#fff” : (dark ? C.textDark : C.text) }}>
+{s === “all” ? “الكل” : s === “middle” ? “متوسط” : “ثانوي”}
+</button>
+))}
+</div>
+<div style={{ display: “flex”, flexDirection: “column”, gap: 10 }}>
+{filtered.map(s => {
+const avg = avgScore(s);
+return (
+<div key={s.id} onClick={() => setSelected(s)} style={{ background: dark ? C.cardDark : “#fff”, border: `1px solid ${dark ? C.borderDark : C.border}`, borderRadius: 14, padding: “14px 20px”, cursor: “pointer”, display: “flex”, alignItems: “center”, gap: 14, transition: “all .15s” }}
+onMouseEnter={e => e.currentTarget.style.borderColor = C.primary}
+onMouseLeave={e => e.currentTarget.style.borderColor = dark ? C.borderDark : C.border}>
+<div style={{ width: 40, height: 40, borderRadius: “50%”, background: C.primary + “18”, display: “flex”, alignItems: “center”, justifyContent: “center”, fontSize: 20 }}>👤</div>
+<div style={{ flex: 1 }}>
+<div style={{ fontWeight: 700, fontSize: 14 }}>{s.name}</div>
+<div style={{ fontSize: 11, color: dark ? C.mutedDark : C.muted }}>{gradeLabel(s.grade)}</div>
+</div>
+<div style={{ display: “flex”, gap: 3, alignItems: “flex-end”, height: 28 }}>
+{SKILLS_CONFIG.map(sk => (
+<div key={sk.id} style={{ width: 8, background: sk.color, height: `${(s[sk.id] || 0) / 100 * 28}px`, borderRadius: 2, opacity: 0.8 }} title={sk.en} />
+))}
+</div>
+<Badge label={`${avg}%`} color={avg >= 85 ? C.success : avg >= 70 ? C.warning : C.danger} />
+</div>
+);
+})}
+</div>
+</div>
+);
+}
+
+function AttendanceView({ dark }) {
+const [scanning, setScanning] = useState(false);
+const [manual, setManual] = useState(””);
+const [lastScanned, setLastScanned] = useState(null);
+const [today, setToday] = useState(SAMPLE_STUDENTS.reduce((a, s) => ({ …a, [s.id]: null }), {}));
+const record = id => setToday(prev => ({ …prev, [id]: new Date().toLocaleTimeString(“ar”) }));
+const handleManual = () => {
+const st = SAMPLE_STUDENTS.find(s => s.qrCode === manual.toUpperCase() || s.name.includes(manual));
+if (st) { record(st.id); setLastScanned(st); }
+setManual(””);
+};
+const present = Object.values(today).filter(Boolean).length;
+
+return (
+<div style={{ display: “flex”, flexDirection: “column”, gap: 18 }}>
+<div style={{ display: “flex”, flexWrap: “wrap”, gap: 14 }}>
+<StatCard icon="✅" label="الحاضرون" value={present} color={C.success} dark={dark} />
+<StatCard icon=“❌” label=“الغائبون” value={SAMPLE_STUDENTS.length - present} color={C.danger} dark={dark} />
+<StatCard icon=“📊” label=“نسبة الحضور” value={`${Math.round(present / SAMPLE_STUDENTS.length * 100)}%`} color={C.primary} dark={dark} />
+</div>
+<div style={{ display: “grid”, gridTemplateColumns: “1fr 1fr”, gap: 16 }}>
+<Card dark={dark}>
+<div style={{ fontWeight: 700, fontSize: 14, marginBottom: 16 }}>📷 مسح QR Code</div>
+<div style={{ border: `2px dashed ${scanning ? C.success : (dark ? C.borderDark : C.border)}`, borderRadius: 14, padding: 28, textAlign: “center”, marginBottom: 16, background: scanning ? C.success + “0e” : “transparent”, transition: “all .3s” }}>
+<div style={{ fontSize: 44 }}>{scanning ? “📸” : “🎯”}</div>
+<div style={{ fontSize: 13, color: dark ? C.mutedDark : C.muted, marginTop: 10 }}>{scanning ? “الكاميرا مفعّلة — وجّه نحو QR” : “اضغط لتفعيل الكاميرا”}</div>
+<button onClick={() => setScanning(!scanning)} style={{ marginTop: 14, padding: “9px 22px”, borderRadius: 10, border: “none”, background: scanning ? C.danger : C.primary, color: “#fff”, cursor: “pointer”, fontFamily: “inherit”, fontWeight: 700 }}>
+{scanning ? “إيقاف” : “تفعيل الكاميرا”}
+</button>
+</div>
+<div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>أو أدخل الرمز يدوياً</div>
+<div style={{ display: “flex”, gap: 8 }}>
+<input value={manual} onChange={e => setManual(e.target.value)} onKeyDown={e => e.key === “Enter” && handleManual()} placeholder=“STU001 أو اسم الطالب”
+style={{ flex: 1, padding: “9px 12px”, borderRadius: 10, border: `1px solid ${dark ? C.borderDark : C.border}`, background: dark ? C.bgDark : “#f5f8ff”, color: dark ? C.textDark : C.text, fontFamily: “inherit” }} />
+<button onClick={handleManual} style={{ padding: “9px 16px”, borderRadius: 10, border: “none”, background: C.primary, color: “#fff”, cursor: “pointer”, fontFamily: “inherit”, fontWeight: 700 }}>✓</button>
+</div>
+{lastScanned && <div style={{ marginTop: 14, padding: “10px 14px”, borderRadius: 10, background: C.success + “18”, border: `1px solid ${C.success}44`, color: C.success, fontSize: 13, fontWeight: 700 }}>✅ تم تسجيل حضور: {lastScanned.name}</div>}
+</Card>
+<Card dark={dark}>
+<div style={{ fontWeight: 700, fontSize: 14, marginBottom: 14 }}>📋 سجل اليوم</div>
+<div style={{ display: “flex”, flexDirection: “column”, gap: 8, maxHeight: 340, overflowY: “auto” }}>
+{SAMPLE_STUDENTS.map(s => {
+const time = today[s.id];
+return (
+<div key={s.id} style={{ display: “flex”, alignItems: “center”, gap: 10, padding: “8px 10px”, borderRadius: 10, background: time ? C.success + “10” : (dark ? “#ffffff08” : “#f5f8ff”) }}>
+<span>{time ? “✅” : “⬜”}</span>
+<div style={{ flex: 1 }}>
+<div style={{ fontSize: 13, fontWeight: 600 }}>{s.name}</div>
+<div style={{ fontSize: 11, color: dark ? C.mutedDark : C.muted }}>{gradeLabel(s.grade)}</div>
+</div>
+{time ? <span style={{ fontSize: 11, color: C.success, fontWeight: 700 }}>{time}</span>
+: <button onClick={() => record(s.id)} style={{ padding: “4px 10px”, borderRadius: 8, border: “none”, background: C.primary + “18”, color: C.primary, cursor: “pointer”, fontFamily: “inherit”, fontSize: 11, fontWeight: 600 }}>تسجيل</button>}
+</div>
+);
+})}
+</div>
+</Card>
+</div>
+<Card dark={dark}>
+<div style={{ fontWeight: 700, fontSize: 14, marginBottom: 16 }}>🔲 رموز QR للطلاب</div>
+<div style={{ display: “flex”, flexWrap: “wrap”, gap: 20 }}>
+{SAMPLE_STUDENTS.map(s => (
+<div key={s.id} style={{ display: “flex”, flexDirection: “column”, alignItems: “center”, gap: 8 }}>
+<QRBlock code={s.qrCode} size={80} />
+<div style={{ fontSize: 11, fontWeight: 600, textAlign: “center”, maxWidth: 90 }}>{s.name.split(” “).slice(0, 2).join(” “)}</div>
+<div style={{ fontSize: 10, color: dark ? C.mutedDark : C.muted }}>{s.qrCode}</div>
+</div>
+))}
+</div>
+</Card>
+</div>
+);
+}
+
+function QuizzesView({ dark }) {
+const [tab, setTab] = useState(“create”);
+const [quiz, setQuiz] = useState({ title: “”, grade: “”, skill: “grammar”, questions: [] });
+const [newQ, setNewQ] = useState({ type: “mcq”, text: “”, options: [””, “”, “”, “”], correct: 0 });
+const [flash, setFlash] = useState(””);
+
+const addQ = () => {
+if (!newQ.text.trim()) return;
+setQuiz(prev => ({ …prev, questions: […prev.questions, { …newQ, id: Date.now() }] }));
+setNewQ({ type: “mcq”, text: “”, options: [””, “”, “”, “”], correct: 0 });
+setFlash(“✅ تمت الإضافة!”); setTimeout(() => setFlash(””), 2000);
+};
+
+return (
+<div>
+<div style={{ display: “flex”, gap: 8, marginBottom: 18 }}>
+{[{ id: “create”, label: “إنشاء اختبار” }, { id: “results”, label: “النتائج” }].map(t => (
+<button key={t.id} onClick={() => setTab(t.id)} style={{ padding: “8px 18px”, borderRadius: 10, border: “none”, cursor: “pointer”, fontFamily: “inherit”, fontWeight: 600, fontSize: 13, background: tab === t.id ? C.primary : (dark ? C.cardDark : “#e8eef8”), color: tab === t.id ? “#fff” : (dark ? C.textDark : C.text) }}>{t.label}</button>
+))}
+</div>
+
+```
+  {tab === "create" && (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <Card dark={dark}>
+        <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 16 }}>📝 معلومات الاختبار</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: 6 }}>عنوان الاختبار</label>
+            <input value={quiz.title} onChange={e => setQuiz({ ...quiz, title: e.target.value })} placeholder="Grammar Quiz — Unit 3"
+              style={{ width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${dark ? C.borderDark : C.border}`, background: dark ? C.bgDark : "#f5f8ff", color: dark ? C.textDark : C.text, fontFamily: "inherit", boxSizing: "border-box" }} />
+          </div>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: 6 }}>الصف</label>
+            <select value={quiz.grade} onChange={e => setQuiz({ ...quiz, grade: e.target.value })} style={{ width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${dark ? C.borderDark : C.border}`, background: dark ? C.bgDark : "#f5f8ff", color: dark ? C.textDark : C.text, fontFamily: "inherit" }}>
+              <option value="">-- اختر --</option>
+              {Object.values(STAGES).flatMap(s => s.grades).map(g => <option key={g.id} value={g.id}>{g.label}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: 6 }}>المهارة</label>
+            <select value={quiz.skill} onChange={e => setQuiz({ ...quiz, skill: e.target.value })} style={{ width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${dark ? C.borderDark : C.border}`, background: dark ? C.bgDark : "#f5f8ff", color: dark ? C.textDark : C.text, fontFamily: "inherit" }}>
+              {SKILLS_CONFIG.map(s => <option key={s.id} value={s.id}>{s.icon} {s.en}</option>)}
+            </select>
+          </div>
+        </div>
+      </Card>
+      <Card dark={dark}>
+        <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 14 }}>➕ إضافة سؤال</div>
+        <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+          {[{ id: "mcq", label: "Multiple Choice" }, { id: "tf", label: "True / False" }, { id: "essay", label: "Open / Essay" }].map(t => (
+            <button key={t.id} onClick={() => setNewQ({ ...newQ, type: t.id })} style={{ padding: "7px 14px", borderRadius: 8, border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 12, fontWeight: 600, background: newQ.type === t.id ? C.primary : (dark ? C.bgDark : "#e8eef8"), color: newQ.type === t.id ? "#fff" : (dark ? C.textDark : C.text) }}>{t.label}</button>
+          ))}
+        </div>
+        <textarea value={newQ.text} onChange={e => setNewQ({ ...newQ, text: e.target.value })} rows={2} placeholder="e.g. Choose the correct form of the verb..."
+          style={{ width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${dark ? C.borderDark : C.border}`, background: dark ? C.bgDark : "#f5f8ff", color: dark ? C.textDark : C.text, fontFamily: "inherit", resize: "vertical", boxSizing: "border-box", marginBottom: 12 }} />
+        {newQ.type === "mcq" && (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+            {newQ.options.map((opt, i) => (
+              <div key={i} style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <input type="radio" checked={newQ.correct === i} onChange={() => setNewQ({ ...newQ, correct: i })} />
+                <input value={opt} onChange={e => { const o = [...newQ.options]; o[i] = e.target.value; setNewQ({ ...newQ, options: o }); }} placeholder={`Option ${String.fromCharCode(65 + i)}`}
+                  style={{ flex: 1, padding: "7px 10px", borderRadius: 8, border: `1px solid ${dark ? C.borderDark : C.border}`, background: dark ? C.bgDark : "#f5f8ff", color: dark ? C.textDark : C.text, fontFamily: "inherit", fontSize: 13 }} />
+              </div>
+            ))}
+          </div>
+        )}
+        {newQ.type === "tf" && (
+          <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
+            {["True ✅", "False ❌"].map((label, i) => (
+              <button key={i} onClick={() => setNewQ({ ...newQ, correct: i })} style={{ padding: "10px 24px", borderRadius: 10, border: "none", cursor: "pointer", fontFamily: "inherit", fontWeight: 700, background: newQ.correct === i ? (i === 0 ? C.success : C.danger) : (dark ? C.bgDark : "#e8eef8"), color: newQ.correct === i ? "#fff" : (dark ? C.textDark : C.text) }}>{label}</button>
+            ))}
+          </div>
+        )}
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <button onClick={addQ} style={{ padding: "10px 26px", borderRadius: 10, border: "none", background: C.accent, color: "#fff", cursor: "pointer", fontFamily: "inherit", fontWeight: 700 }}>إضافة السؤال</button>
+          {flash && <span style={{ color: C.success, fontWeight: 700, fontSize: 13 }}>{flash}</span>}
+        </div>
+      </Card>
+      {quiz.questions.length > 0 && (
+        <Card dark={dark}>
+          <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 14 }}>📋 الأسئلة ({quiz.questions.length})</div>
+          {quiz.questions.map((q, i) => (
+            <div key={q.id} style={{ display: "flex", gap: 12, padding: "10px 0", borderBottom: i < quiz.questions.length - 1 ? `1px solid ${dark ? C.borderDark : C.border}` : "none" }}>
+              <div style={{ width: 28, height: 28, borderRadius: "50%", background: C.primary + "18", color: C.primary, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 13, flexShrink: 0 }}>{i + 1}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 600 }}>{q.text}</div>
+                <Chip label={q.type === "mcq" ? "MCQ" : q.type === "tf" ? "T/F" : "Essay"} color={C.info} />
+              </div>
+            </div>
+          ))}
+          <button style={{ marginTop: 16, padding: "10px 28px", borderRadius: 10, border: "none", background: C.primary, color: "#fff", cursor: "pointer", fontFamily: "inherit", fontWeight: 700 }}>🚀 نشر الاختبار</button>
+        </Card>
+      )}
+    </div>
+  )}
+
+  {tab === "results" && (
+    <Card dark={dark}>
+      <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 16 }}>📊 نتائج الطلاب</div>
+      {SAMPLE_STUDENTS.map((s, i) => {
+        const avg = avgScore(s);
+        return (
+          <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "10px 0", borderBottom: i < SAMPLE_STUDENTS.length - 1 ? `1px solid ${dark ? C.borderDark : C.border}` : "none" }}>
+            <span>👤</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 600 }}>{s.name}</div>
+              <div style={{ fontSize: 11, color: dark ? C.mutedDark : C.muted }}>{gradeLabel(s.grade)}</div>
+            </div>
+            <div style={{ width: 120, height: 8, background: dark ? C.borderDark : "#e0e8f4", borderRadius: 4, overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${avg}%`, background: avg >= 85 ? C.success : avg >= 70 ? C.warning : C.danger, borderRadius: 4 }} />
+            </div>
+            <Badge label={`${avg}%`} color={avg >= 85 ? C.success : avg >= 70 ? C.warning : C.danger} />
+          </div>
+        );
+      })}
+    </Card>
+  )}
+</div>
+```
+
+);
+}
+
+function ReportsView({ dark }) {
+const avgAll = Math.round(SAMPLE_STUDENTS.reduce((s, st) => s + avgScore(st), 0) / SAMPLE_STUDENTS.length);
+const avgAtt = Math.round(SAMPLE_STUDENTS.reduce((s, st) => s + st.attendance, 0) / SAMPLE_STUDENTS.length);
+return (
+<div style={{ display: “flex”, flexDirection: “column”, gap: 20 }}>
+<div style={{ display: “flex”, flexWrap: “wrap”, gap: 14 }}>
+<StatCard icon=“📈” label=“متوسط الدرجات” value={`${avgAll}%`} color={C.primary} dark={dark} />
+<StatCard icon=“✅” label=“متوسط الحضور” value={`${avgAtt}%`} color={C.success} dark={dark} />
+<StatCard icon=“🏆” label=“أعلى درجة” value={`${Math.max(...SAMPLE_STUDENTS.map(s => avgScore(s)))}%`} color={C.accent} dark={dark} />
+<StatCard icon=“⚠️” label=“أدنى درجة” value={`${Math.min(...SAMPLE_STUDENTS.map(s => avgScore(s)))}%`} color={C.danger} dark={dark} />
+</div>
+<Card dark={dark}>
+<div style={{ fontWeight: 700, fontSize: 14, marginBottom: 18 }}>🌐 مقارنة المهارات اللغوية</div>
+{SKILLS_CONFIG.map(sk => {
+const avg = Math.round(SAMPLE_STUDENTS.reduce((s, st) => s + (st[sk.id] || 0), 0) / SAMPLE_STUDENTS.length);
+return (
+<div key={sk.id} style={{ display: “flex”, alignItems: “center”, gap: 14, marginBottom: 12 }}>
+<div style={{ width: 130, fontSize: 13, fontWeight: 600 }}>{sk.icon} {sk.en}</div>
+<div style={{ flex: 1, height: 12, background: dark ? C.borderDark : “#e0e8f4”, borderRadius: 6, overflow: “hidden” }}>
+<div style={{ height: “100%”, width: `${avg}%`, background: sk.color, borderRadius: 6 }} />
+</div>
+<div style={{ width: 44, textAlign: “right”, fontWeight: 700, color: sk.color, fontSize: 13 }}>{avg}%</div>
+</div>
+);
+})}
+</Card>
+<Card dark={dark}>
+<div style={{ display: “flex”, alignItems: “center”, justifyContent: “space-between”, marginBottom: 16 }}>
+<div style={{ fontWeight: 700, fontSize: 14 }}>📋 تقرير تفصيلي — اللغة الإنجليزية</div>
+<button style={{ padding: “8px 18px”, borderRadius: 10, border: “none”, background: C.danger + “18”, color: C.danger, cursor: “pointer”, fontFamily: “inherit”, fontWeight: 700, fontSize: 13 }}>📄 تصدير PDF</button>
+</div>
+<div style={{ overflowX: “auto” }}>
+<table style={{ width: “100%”, borderCollapse: “collapse”, fontSize: 12 }}>
+<thead>
+<tr style={{ background: dark ? C.bgDark : “#eef2fb” }}>
+{[“الطالب”, “الصف”, “Reading”, “Writing”, “Listening”, “Speaking”, “Grammar”, “Vocab”, “المتوسط”, “الحضور”, “الحالة”].map(h => (
+<th key={h} style={{ padding: “9px 10px”, textAlign: “right”, fontWeight: 700, color: dark ? C.mutedDark : C.muted, whiteSpace: “nowrap” }}>{h}</th>
+))}
+</tr>
+</thead>
+<tbody>
+{SAMPLE_STUDENTS.map((s) => {
+const avg = avgScore(s);
+return (
+<tr key={s.id} style={{ borderBottom: `1px solid ${dark ? C.borderDark : C.border}` }}>
+<td style={{ padding: “9px 10px”, fontWeight: 600, whiteSpace: “nowrap” }}>{s.name}</td>
+<td style={{ padding: “9px 10px”, whiteSpace: “nowrap” }}>{gradeLabel(s.grade)}</td>
+{[“reading”, “writing”, “listening”, “speaking”, “grammar”, “vocabulary”].map(sk => (
+<td key={sk} style={{ padding: “9px 10px”, textAlign: “center”, color: (s[sk] || 0) >= 85 ? C.success : (s[sk] || 0) >= 70 ? C.warning : C.danger, fontWeight: 700 }}>{s[sk] || 0}</td>
+))}
+<td style={{ padding: “9px 10px” }}><Badge label={`${avg}%`} color={avg >= 85 ? C.success : avg >= 70 ? C.warning : C.danger} /></td>
+<td style={{ padding: “9px 10px” }}><Badge label={`${s.attendance}%`} color={s.attendance >= 90 ? C.success : C.warning} /></td>
+<td style={{ padding: “9px 10px” }}><Badge label={avg >= 85 ? “متفوق” : avg >= 70 ? “جيد” : “متابعة”} color={avg >= 85 ? C.success : avg >= 70 ? C.warning : C.danger} /></td>
+</tr>
+);
+})}
+</tbody>
+</table>
+</div>
+</Card>
+</div>
+);
+}
+
+function StudentPortal({ dark, onBack }) {
+const st = SAMPLE_STUDENTS[0];
+const [tab, setTab] = useState(“content”);
+const [stage, setStage] = useState(null);
+const [grade, setGrade] = useState(null);
+
+return (
+<div style={{ minHeight: “100vh”, background: dark ? C.bgDark : C.bg, direction: “rtl”, fontFamily: “‘Segoe UI’, ‘Cairo’, Tahoma, Arial, sans-serif”, color: dark ? C.textDark : C.text }}>
+<div style={{ background: `linear-gradient(135deg,${C.primaryDark},${C.primary})`, color: “#fff”, padding: “14px 22px”, display: “flex”, alignItems: “center”, gap: 14 }}>
+<button onClick={onBack} style={{ background: “#ffffff22”, border: “none”, color: “#fff”, borderRadius: 8, padding: “6px 14px”, cursor: “pointer”, fontFamily: “inherit”, fontWeight: 700, fontSize: 13 }}>← رجوع</button>
+<div style={{ flex: 1 }}>
+<div style={{ fontWeight: 800, fontSize: 16 }}>🌐 بوابة الطالب — اللغة الإنجليزية</div>
+<div style={{ fontSize: 12, opacity: 0.8 }}>مرحباً، {st.name} · {gradeLabel(st.grade)}</div>
+</div>
+</div>
+<div style={{ padding: 20, maxWidth: 760, margin: “0 auto” }}>
+<Card dark={dark} style={{ marginBottom: 18 }}>
+<div style={{ fontWeight: 700, fontSize: 14, marginBottom: 14 }}>📊 مهاراتي في اللغة الإنجليزية</div>
+<div style={{ display: “flex”, flexWrap: “wrap”, gap: 12 }}>
+{SKILLS_CONFIG.map(sk => (
+<div key={sk.id} style={{ display: “flex”, flexDirection: “column”, alignItems: “center”, gap: 4, flex: 1, minWidth: 70 }}>
+<CircleProgress value={st[sk.id] || 0} size={58} color={sk.color} dark={dark} />
+<div style={{ fontSize: 11, fontWeight: 700, color: sk.color }}>{sk.icon}</div>
+<div style={{ fontSize: 10, color: dark ? C.mutedDark : C.muted }}>{sk.en}</div>
+</div>
+))}
+</div>
+</Card>
+<div style={{ display: “flex”, gap: 6, flexWrap: “wrap”, marginBottom: 18 }}>
+{[{ id: “content”, label: “📚 الوحدات” }, { id: “homework”, label: “📌 واجبات” }, { id: “quizzes”, label: “📝 اختبارات” }, { id: “schedule”, label: “🗓️ جدولي” }].map(t => (
+<button key={t.id} onClick={() => setTab(t.id)} style={{ padding: “8px 18px”, borderRadius: 10, border: “none”, cursor: “pointer”, fontFamily: “inherit”, fontWeight: 600, fontSize: 13, background: tab === t.id ? C.primary : (dark ? C.cardDark : “#e8eef8”), color: tab === t.id ? “#fff” : (dark ? C.textDark : C.text) }}>{t.label}</button>
+))}
+</div>
+{tab === “content” && (
+!stage ? (
+<div style={{ display: “grid”, gridTemplateColumns: “1fr 1fr”, gap: 14 }}>
+{Object.entries(STAGES).map(([key, s]) => (
+<div key={key} onClick={() => setStage(key)} style={{ background: dark ? C.cardDark : “#fff”, border: `2px solid ${dark ? C.borderDark : C.border}`, borderRadius: 16, padding: 24, cursor: “pointer”, textAlign: “center” }}>
+<div style={{ fontSize: 40 }}>{s.icon}</div>
+<div style={{ fontWeight: 700, fontSize: 15, marginTop: 10, color: s.color }}>{s.label}</div>
+</div>
+))}
+</div>
+) : !grade ? (
+<div>
+<BackBtn onClick={() => setStage(null)} />
+<div style={{ display: “flex”, gap: 12, marginTop: 14, flexWrap: “wrap” }}>
+{STAGES[stage].grades.map(g => (
+<div key={g.id} onClick={() => setGrade(g)} style={{ flex: 1, minWidth: 140, background: dark ? C.cardDark : “#fff”, border: `2px solid ${dark ? C.borderDark : C.border}`, borderRadius: 14, padding: “20px 24px”, cursor: “pointer”, textAlign: “center”, fontWeight: 700 }}>
+🎒 {g.label}
+</div>
+))}
+</div>
+</div>
+) : (
+<div>
+<BackBtn onClick={() => setGrade(null)} />
+<div style={{ display: “flex”, flexDirection: “column”, gap: 12, marginTop: 14 }}>
+{(UNITS[grade.id] || []).map(u => (
+<div key={u.id} style={{ background: dark ? C.cardDark : “#fff”, border: `1px solid ${dark ? C.borderDark : C.border}`, borderRadius: 14, padding: “14px 18px” }}>
+<div style={{ display: “flex”, alignItems: “center”, gap: 10, marginBottom: 10 }}>
+<span style={{ fontSize: 22 }}>{u.icon}</span>
+<div style={{ fontWeight: 700, fontSize: 14 }}>{u.title}</div>
+</div>
+<div style={{ display: “flex”, gap: 8, flexWrap: “wrap” }}>
+{CONTENT_TYPES.map(ct => (
+<button key={ct.id} style={{ padding: “5px 12px”, borderRadius: 8, border: `1px solid ${ct.color}44`, background: ct.color + “12”, color: ct.color, cursor: “pointer”, fontFamily: “inherit”, fontSize: 12, fontWeight: 600 }}>{ct.icon} {ct.labelEn}</button>
+))}
+</div>
+</div>
+))}
+</div>
+</div>
+)
+)}
+{tab === “homework” && (
+<div style={{ display: “flex”, flexDirection: “column”, gap: 10 }}>
+{[
+{ title: “Writing: Describe your daily routine (100 words)”, due: “2026-04-10”, skill: “writing” },
+{ title: “Grammar Worksheet: Present Perfect”, due: “2026-04-12”, skill: “grammar” },
+{ title: “Vocabulary list Unit 4 — learn 20 words”, due: “2026-04-14”, skill: “vocabulary” },
+].map((hw, i) => {
+const sk = SKILLS_CONFIG.find(s => s.id === hw.skill);
+return (
+<div key={i} style={{ background: dark ? C.cardDark : “#fff”, border: `1px solid ${dark ? C.borderDark : C.border}`, borderRadius: 12, padding: “14px 18px”, display: “flex”, gap: 12, alignItems: “center” }}>
+<span style={{ fontSize: 22 }}>{sk?.icon}</span>
+<div style={{ flex: 1 }}>
+<div style={{ fontWeight: 700, fontSize: 13 }}>{hw.title}</div>
+<div style={{ fontSize: 11, color: dark ? C.mutedDark : C.muted, marginTop: 3 }}>موعد التسليم: {hw.due}</div>
+</div>
+<Chip label={sk?.en || “”} color={sk?.color || C.primary} />
+</div>
+);
+})}
+</div>
+)}
+{tab === “quizzes” && <Card dark={dark} style={{ textAlign: “center”, padding: 40 }}><div style={{ fontSize: 48 }}>📝</div><div style={{ marginTop: 12, fontSize: 14, color: dark ? C.mutedDark : C.muted }}>لا توجد اختبارات نشطة حالياً</div></Card>}
+{tab === “schedule” && (
+<div style={{ display: “flex”, flexDirection: “column”, gap: 10 }}>
+{[“السبت”, “الأحد”, “الاثنين”, “الثلاثاء”, “الأربعاء”].map((day, i) => (
+<div key={day} style={{ background: dark ? C.cardDark : “#fff”, border: `1px solid ${dark ? C.borderDark : C.border}`, borderRadius: 12, padding: “12px 18px”, display: “flex”, alignItems: “center”, gap: 14 }}>
+<div style={{ width: 52, fontWeight: 700, color: C.primary, fontSize: 13 }}>{day}</div>
+<Chip label={`${SKILLS_CONFIG[i % 6].icon} ${SKILLS_CONFIG[i % 6].en}`} color={SKILLS_CONFIG[i % 6].color} />
+<Chip label={`${SKILLS_CONFIG[(i + 3) % 6].icon} ${SKILLS_CONFIG[(i + 3) % 6].en}`} color={SKILLS_CONFIG[(i + 3) % 6].color} />
+</div>
+))}
+</div>
+)}
+</div>
+</div>
+);
+}
+
+export default function App() {
+const [dark, setDark] = useState(false);
+const [view, setView] = useState(“dashboard”);
+const [studentPortal, setStudentPortal] = useState(false);
+const [sidebarOpen, setSidebarOpen] = useState(true);
+
+const nav = [
+{ id: “dashboard”, icon: “🏠”, label: “لوحة التحكم” },
+{ id: “content”, icon: “📚”, label: “المحتوى الدراسي” },
+{ id: “students”, icon: “👨‍🎓”, label: “الطلاب” },
+{ id: “quizzes”, icon: “📝”, label: “الاختبارات” },
+{ id: “attendance”, icon: “✅”, label: “الحضور والغياب” },
+{ id: “reports”, icon: “📊”, label: “التقارير” },
+];
+
+if (studentPortal) return <StudentPortal dark={dark} onBack={() => setStudentPortal(false)} />;
+
+return (
+<div style={{ direction: “rtl”, fontFamily: “‘Segoe UI’, ‘Cairo’, Tahoma, Arial, sans-serif”, minHeight: “100vh”, background: dark ? C.bgDark : C.bg, color: dark ? C.textDark : C.text, display: “flex” }}>
+<div style={{ width: sidebarOpen ? 240 : 64, background: `linear-gradient(180deg, ${C.primaryDark} 0%, ${C.primary} 100%)`, display: “flex”, flexDirection: “column”, transition: “width .25s”, flexShrink: 0, position: “sticky”, top: 0, height: “100vh”, overflowY: “auto”, overflowX: “hidden” }}>
+<div style={{ padding: “22px 14px 18px”, borderBottom: “1px solid #ffffff1a” }}>
+<div style={{ display: “flex”, alignItems: “center”, gap: 10 }}>
+<div style={{ width: 38, height: 38, background: “#fff”, borderRadius: 10, display: “flex”, alignItems: “center”, justifyContent: “center”, fontSize: 22, flexShrink: 0 }}>🌐</div>
+{sidebarOpen && <div style={{ color: “#fff” }}>
+<div style={{ fontWeight: 800, fontSize: 14 }}>منصة الإنجليزي</div>
+<div style={{ fontSize: 11, opacity: 0.6 }}>English Teacher Platform</div>
+</div>}
+</div>
+</div>
+<nav style={{ flex: 1, padding: “10px 8px” }}>
+{nav.map(item => (
+<button key={item.id} onClick={() => setView(item.id)} style={{ width: “100%”, display: “flex”, alignItems: “center”, gap: 12, padding: “11px 12px”, borderRadius: 12, border: “none”, cursor: “pointer”, fontFamily: “inherit”, marginBottom: 4, background: view === item.id ? “#ffffff20” : “transparent”, color: view === item.id ? “#fff” : “rgba(255,255,255,0.65)”, fontWeight: view === item.id ? 700 : 500, fontSize: 14, textAlign: “right” }}>
+<span style={{ fontSize: 20, flexShrink: 0 }}>{item.icon}</span>
+{sidebarOpen && <span style={{ whiteSpace: “nowrap” }}>{item.label}</span>}
+</button>
+))}
+</nav>
+{sidebarOpen && (
+<div style={{ padding: 14, borderTop: “1px solid #ffffff1a” }}>
+<button onClick={() => setStudentPortal(true)} style={{ width: “100%”, padding: 11, borderRadius: 12, border: “2px solid #ffffff33”, background: “transparent”, color: “#fff”, cursor: “pointer”, fontFamily: “inherit”, fontWeight: 700, fontSize: 13 }}>
+👨‍🎓 بوابة الطالب
+</button>
+</div>
+)}
+</div>
+
+```
+  <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+    <div style={{ background: dark ? C.cardDark : "#fff", borderBottom: `1px solid ${dark ? C.borderDark : C.border}`, padding: "13px 22px", display: "flex", alignItems: "center", gap: 14, position: "sticky", top: 0, zIndex: 50 }}>
+      <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 20, color: dark ? C.textDark : C.text }}>☰</button>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontWeight: 800, fontSize: 16 }}>{nav.find(n => n.id === view)?.icon} {nav.find(n => n.id === view)?.label}</div>
+        <div style={{ fontSize: 11, color: dark ? C.mutedDark : C.muted }}>مادة اللغة الإنجليزية 🌐</div>
+      </div>
+      <input placeholder="🔍 بحث سريع..." style={{ padding: "8px 14px", borderRadius: 12, border: `1px solid ${dark ? C.borderDark : C.border}`, background: dark ? C.bgDark : C.bg, color: dark ? C.textDark : C.text, fontFamily: "inherit", fontSize: 13, width: 180 }} />
+      <NotificationBell dark={dark} />
+      <button onClick={() => setDark(!dark)} style={{ background: dark ? C.cardDark : "#e8eef8", border: `1px solid ${dark ? C.borderDark : C.border}`, borderRadius: 10, padding: "7px 12px", cursor: "pointer", fontSize: 16 }}>{dark ? "☀️" : "🌙"}</button>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ width: 36, height: 36, borderRadius: "50%", background: C.primary + "18", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>👨‍🏫</div>
+        <div style={{ fontSize: 13 }}>
+          <div style={{ fontWeight: 700 }}>أ. محمد</div>
+          <div style={{ fontSize: 11, color: dark ? C.mutedDark : C.muted }}>معلم إنجليزي</div>
+        </div>
+      </div>
+    </div>
+    <div style={{ flex: 1, padding: 22, overflowY: "auto" }}>
+      {view === "dashboard" && <DashboardView dark={dark} />}
+      {view === "content" && <ContentView dark={dark} />}
+      {view === "students" && <StudentsView dark={dark} />}
+      {view === "quizzes" && <QuizzesView dark={dark} />}
+      {view === "attendance" && <AttendanceView dark={dark} />}
+      {view === "reports" && <ReportsView dark={dark} />}
+    </div>
+  </div>
+
+  <style>{`* { box-sizing: border-box; } body { margin: 0; } ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-thumb { background: #1e4fa344; border-radius: 3px; } input, textarea, select, button { outline: none; }`}</style>
+</div>
+```
+
+);
+}
